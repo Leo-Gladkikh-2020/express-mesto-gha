@@ -5,8 +5,8 @@ const {
 
 router.get('/', getUsers);
 router.get('/:userId', getUserById);
-router.get('/me', getCurrentUser);
-router.patch('me', updateUserInfo);
-router.patch('me/avatar', updateUserAvatar);
+router.post('/me', getCurrentUser);
+router.patch('/me', updateUserInfo);
+router.patch('/me/avatar', updateUserAvatar);
 
 module.exports = router;
