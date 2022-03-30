@@ -9,7 +9,6 @@ const { PORT = 3000 } = process.env;
 const app = express();
 
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use('/users', routerUsers);
 app.use('/cards', routerCards);
@@ -18,6 +17,12 @@ app.use((req, res, next) => {
   req.user = {
     _id: '623c95001f9e7cd25c434952',
   };
+
+  next();
+});
+
+app.use((req, res, next) => {
+  res.status(404).send({ message: 'Страница не найдена' });
 
   next();
 });
