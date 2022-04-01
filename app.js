@@ -10,9 +10,6 @@ const app = express();
 
 app.use(bodyParser.json());
 
-app.use('/users', routerUsers);
-app.use('/cards', routerCards);
-
 app.use((req, res, next) => {
   req.user = {
     _id: '623c95001f9e7cd25c434952',
@@ -21,10 +18,11 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use((req, res, next) => {
-  res.status(404).send({ message: 'Страница не найдена' });
+app.use('/users', routerUsers);
+app.use('/cards', routerCards);
 
-  next();
+app.use((req, res) => {
+  res.status(404).send({ message: 'Страница не найдена' });
 });
 
 mongoose.connect('mongodb://localhost:27017/mestodb', { useNewUrlParser: true });

@@ -1,4 +1,5 @@
 const Card = require('../models/card');
+const ErrorNotFound = require('../error/ErrorNotFound');
 
 module.exports.getCards = (req, res) => {
   Card.find({})
@@ -21,11 +22,18 @@ module.exports.createCard = (req, res) => {
 };
 
 module.exports.deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
-    .then((card) => (card ? res.send(card) : res.status(404).send({ message: 'Карточка не найдена' })))
+  // eslint-disable-next-line no-undef
+  Card.findByIdAndRemove(id)
+    .orFail(() => {
+      // eslint-disable-next-line no-undef
+      throw new ErrorNotFound(`Нет карточки с id ${id}`);
+    })
+    .then((card) => res.send(card))
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: 'Неверный id карточки' });
+      } if (err.statusCode === 404) {
+        res.status(404).send({ message: err.errorMessage });
       } else {
         res.status(500).send({ message: 'Произошла ошибка на сервере' });
       }
@@ -38,10 +46,15 @@ module.exports.likeCard = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => (card ? res.send(card) : res.status(404).send({ message: 'Карточка не найдена' })))
+    .orFail(() => {
+      throw new ErrorNotFound('Карточка не найдена');
+    })
+    .then((card) => res.send(card))
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: 'Неверный id карточки' });
+      } if (err.statusCode === 404) {
+        res.status(404).send({ message: err.errorMessage });
       } else {
         res.status(500).send({ message: 'Произошла ошибка на сервере' });
       }
@@ -54,10 +67,15 @@ module.exports.dislikeCard = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true },
   )
-    .then((card) => (card ? res.send(card) : res.status(404).send({ message: 'Карточка не найдена' })))
+    .orFail(() => {
+      throw new ErrorNotFound('Карточка не найдена');
+    })
+    .then((card) => res.send(card))
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: 'Неверный id карточки' });
+      } if (err.statusCode === 404) {
+        res.status(404).send({ message: err.errorMessage });
       } else {
         res.status(500).send({ message: 'Произошла ошибка на сервере' });
       }

@@ -1,4 +1,5 @@
 const User = require('../models/user');
+const ErrorNotFound = require('../error/ErrorNotFound');
 
 module.exports.getUsers = (req, res) => {
   User.find({})
@@ -8,10 +9,15 @@ module.exports.getUsers = (req, res) => {
 
 module.exports.getUserById = (req, res) => {
   User.findById(req.params.userId)
-    .then((user) => (user ? res.send(user) : res.status(404).send({ message: 'Пользователь не найден' })))
+    .orFail(() => {
+      throw new ErrorNotFound('Пользователь не найден');
+    })
+    .then((users) => res.send(users))
     .catch((err) => {
       if (err.name === 'CastError') {
         res.status(400).send({ message: 'Неверный id пользователя' });
+      } if (err.statusCode === 404) {
+        res.status(404).send({ message: err.errorMessage });
       } else {
         res.status(500).send({ message: 'Произошла ошибка на сервере' });
       }
@@ -40,10 +46,15 @@ module.exports.updateUserInfo = (req, res) => {
     { name, about },
     { new: true, runValidators: true },
   )
-    .then((user) => (user ? res.send(user) : res.status(404).send({ message: 'Пользователь не найден' })))
+    .orFail(() => {
+      throw new ErrorNotFound('Пользователь не найден');
+    })
+    .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(400).send({ message: 'Переданы некорректные данные' });
+      } if (err.statusCode === 404) {
+        res.status(404).send({ message: err.errorMessage });
       } else {
         res.status(500).send({ message: 'Произошла ошибка на сервере' });
       }
@@ -58,10 +69,15 @@ module.exports.updateUserAvatar = (req, res) => {
     { avatar },
     { new: true, runValidators: true },
   )
-    .then((user) => (user ? res.send(user) : res.status(404).send({ message: 'Пользователь не найден' })))
+    .orFail(() => {
+      throw new ErrorNotFound('Пользователь не найден');
+    })
+    .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         res.status(400).send({ message: 'Переданы некорректные данные' });
+      } if (err.statusCode === 404) {
+        res.status(404).send({ message: err.errorMessage });
       } else {
         res.status(500).send({ message: 'Произошла ошибка на сервере' });
       }
