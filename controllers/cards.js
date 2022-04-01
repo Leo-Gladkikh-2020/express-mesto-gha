@@ -22,11 +22,9 @@ module.exports.createCard = (req, res) => {
 };
 
 module.exports.deleteCard = (req, res) => {
-  // eslint-disable-next-line no-undef
-  Card.findByIdAndRemove(id)
+  Card.findByIdAndRemove(req.params.cardId)
     .orFail(() => {
-      // eslint-disable-next-line no-undef
-      throw new ErrorNotFound(`Нет карточки с id ${id}`);
+      throw new ErrorNotFound('Карточка не найдена');
     })
     .then((card) => res.send(card))
     .catch((err) => {
