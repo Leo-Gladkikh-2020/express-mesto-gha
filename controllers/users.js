@@ -1,44 +1,56 @@
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const ErrorNotFound = require('../error/ErrorNotFound');
+const ErrorBadRequest = require('../error/error -bad-request');
+const ErrorUnauthorized = require('../error/error-unauthorized');
+const ErrorNotFound = require('../error/error-not-found');
+const ErrorConflictHttp = require('../error/error-conflict-http');
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send(users))
-    .catch(() => res.status(500).send({ message: 'Произошла ошибка на сервере' }));
+    .catch(next);
 };
 
-module.exports.getUserById = (req, res) => {
+module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.userId)
     .orFail(() => {
       throw new ErrorNotFound('Пользователь не найден');
     })
     .then((users) => res.send(users))
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Неверный id пользователя' });
-      } if (err.statusCode === 404) {
-        res.status(404).send({ message: err.errorMessage });
-      } else {
-        res.status(500).send({ message: 'Произошла ошибка на сервере' });
-      }
-    });
+    .catch(next);
 };
 
-module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
+module.exports.createUser = (req, res, next) => {
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
 
-  User.create({ name, about, avatar })
-    .then((user) => res.send(user))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Переданы некорректные данные' });
-      } else {
-        res.status(500).send({ message: 'Произошла ошибка на сервере' });
+  if (!email || !password) {
+    next(new ErrorBadRequest('Не правильный логин или пароль'));
+  }
+
+  User.findOne({ email })
+    .then((user) => {
+      if (user) {
+        throw new ErrorConflictHttp(`Пользователь с таким ${email} уже существует`);
       }
-    });
+      return bcrypt.hash(password, 10);
+    })
+    .then((hash) => User.create({
+      name, about, avatar, email, password: hash,
+    }))
+    .then((user) => res.send({
+      name: user.name,
+      about: user.about,
+      avatar: user.avatar,
+      email: user.email,
+      _id: user._id,
+    }))
+    .catch(next);
 };
 
-module.exports.updateUserInfo = (req, res) => {
+module.exports.updateUserInfo = (req, res, next) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(
@@ -50,18 +62,10 @@ module.exports.updateUserInfo = (req, res) => {
       throw new ErrorNotFound('Пользователь не найден');
     })
     .then((user) => res.send(user))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Переданы некорректные данные' });
-      } if (err.statusCode === 404) {
-        res.status(404).send({ message: err.errorMessage });
-      } else {
-        res.status(500).send({ message: 'Произошла ошибка на сервере' });
-      }
-    });
+    .catch(next);
 };
 
-module.exports.updateUserAvatar = (req, res) => {
+module.exports.updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(
@@ -73,13 +77,32 @@ module.exports.updateUserAvatar = (req, res) => {
       throw new ErrorNotFound('Пользователь не найден');
     })
     .then((user) => res.send(user))
+    .catch(next);
+};
+
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign(
+        { _id: user._id },
+        'some-secret-key',
+        { expiresIn: '7d' },
+      );
+      res.send({ token });
+    })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Переданы некорректные данные' });
-      } if (err.statusCode === 404) {
-        res.status(404).send({ message: err.errorMessage });
-      } else {
-        res.status(500).send({ message: 'Произошла ошибка на сервере' });
-      }
-    });
+      throw new ErrorUnauthorized(err.message);
+    })
+    .catch(next);
+};
+
+module.exports.getCurrentUser = (req, res, next) => {
+  User.findById(req.user._id)
+    .orFail(() => {
+      throw new ErrorNotFound('Пользователь не найден');
+    })
+    .then((user) => res.send(user))
+    .catch(next);
 };
