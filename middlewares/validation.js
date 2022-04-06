@@ -1,32 +1,32 @@
 const { celebrate, Joi } = require('celebrate');
-const validator = require('validator');
+const { ObjectId } = require('mongoose').Types;
 
-const validateId = Joi.string().custom((value, helpers) => {
-  if (validator.isValid(value)) {
+const validateId = Joi.string().required().custom((value, helpers) => {
+  if (ObjectId.isValid(value)) {
     return value;
   }
   return helpers.message('Неверный id');
 });
 
-const vaidateEmail = Joi.string().required().email();
-const vaidatePassword = Joi.string().required().min(8);
-const vaidateInfo = Joi.string().min(2).max(30);
-const vaidateLink = Joi.string().pattern(/^(http|https):\/\/(www\.)?[\S]+\.[\w]+#?/);
+const validateEmail = Joi.string().required().email();
+const validatePassword = Joi.string().required();
+const validateInfo = Joi.string().min(2).max(30);
+const validateLink = Joi.string().pattern(/^https?:\/\/(www\.)?[-\w.-._~:/?#[\]@!$&'()*+,;=]{1,256}\.[a-z0-9()]{2,}\b([-\w.-._~:/?#[\]@!$&'()*+,;=]*)?/i);
 
 module.exports.validateCreateUser = celebrate({
   body: Joi.object().keys({
-    email: vaidateEmail,
-    password: vaidatePassword,
-    name: vaidateInfo,
-    about: vaidateInfo,
-    avatar: vaidateLink,
+    email: validateEmail,
+    password: validatePassword,
+    name: validateInfo,
+    about: validateInfo,
+    avatar: validateLink,
   }),
 });
 
 module.exports.validateLogin = celebrate({
   body: Joi.object().keys({
-    email: vaidateEmail,
-    password: vaidatePassword,
+    email: validateEmail,
+    password: validatePassword,
   }),
 });
 
@@ -44,20 +44,20 @@ module.exports.validateCardById = celebrate({
 
 module.exports.validateUpdateUserInfo = celebrate({
   body: Joi.object().keys({
-    name: vaidateInfo,
-    about: vaidateInfo,
+    name: validateInfo,
+    about: validateInfo,
   }),
 });
 
 module.exports.validateupdateUserAvatar = celebrate({
   body: Joi.object().keys({
-    avatar: vaidateLink,
+    avatar: validateLink,
   }),
 });
 
 module.exports.validateCreateCard = celebrate({
   body: Joi.object().keys({
-    name: Joi.string().required().min(2).max(30),
-    link: vaidateLink,
+    name: validateInfo,
+    link: validateLink,
   }),
 });

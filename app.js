@@ -19,12 +19,13 @@ app.post('/signin', validateLogin, login);
 app.use(auth);
 app.use('/users', routerUsers);
 app.use('/cards', routerCards);
+
+app.use((req, res, next) => {
+  next(new ErrorNotFound('Страница не найдена'));
+});
+
 app.use(errors());
 app.use(errorHandler);
-
-app.use(() => {
-  throw new ErrorNotFound('Страница не найдена');
-});
 
 mongoose.connect('mongodb://localhost:27017/mestodb', { useNewUrlParser: true });
 

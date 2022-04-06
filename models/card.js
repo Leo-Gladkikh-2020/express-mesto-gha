@@ -12,7 +12,7 @@ const cardSchema = new mongoose.Schema({
     required: true,
     validate: {
       validator(v) {
-        return /^(http|https):\/\/(www\.)?[\S]+\.[\w]+#?/.test(v);
+        return /^https?:\/\/(www\.)?[-\w.-._~:/?#[\]@!$&'()*+,;=]{1,256}\.[a-z0-9()]{2,}\b([-\w.-._~:/?#[\]@!$&'()*+,;=]*)?/i.test(v);
       },
     },
   },
@@ -21,11 +21,11 @@ const cardSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     required: true,
   },
-  likes: {
+  likes: [{
     ref: 'user',
-    type: [mongoose.Schema.Types.ObjectId],
+    type: mongoose.Schema.Types.ObjectId,
     default: [],
-  },
+  }],
   createdAt: {
     type: Date,
     default: Date.now,
