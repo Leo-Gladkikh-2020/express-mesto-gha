@@ -11,7 +11,8 @@ const validateId = Joi.string().required().custom((value, helpers) => {
 const validateEmail = Joi.string().required().email();
 const validatePassword = Joi.string().required();
 const validateInfo = Joi.string().min(2).max(30);
-const validateLink = Joi.string().pattern(/^https?:\/\/(www\.)?[-\w.-._~:/?#[\]@!$&'()*+,;=]{1,256}\.[a-z0-9()]{2,}\b([-\w.-._~:/?#[\]@!$&'()*+,;=]*)?/i);
+const validateLink = Joi.string().pattern(/^https?:\/\/(www.)?[-\w]+\.[-\w/]*/gim);
+// проверено с помощью сервиса https://regex101.com/
 
 module.exports.validateCreateUser = celebrate({
   body: Joi.object().keys({

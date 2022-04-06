@@ -23,7 +23,8 @@ const userSchema = new mongoose.Schema({
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
       validator(v) {
-        return /^https?:\/\/(www\.)?[-\w.-._~:/?#[\]@!$&'()*+,;=]{1,256}\.[a-z0-9()]{2,}\b([-\w.-._~:/?#[\]@!$&'()*+,;=]*)?/i.test(v);
+        return /^https?:\/\/(www.)?[-\w]+\.[-\w/]*/gim.test(v);
+        // проверено с помощью сервиса https://regex101.com/
       },
     },
   },
