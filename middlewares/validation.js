@@ -1,5 +1,6 @@
 const { celebrate, Joi } = require('celebrate');
 const { ObjectId } = require('mongoose').Types;
+const validator = require('validator');
 
 const validateId = Joi.string().required().custom((value, helpers) => {
   if (ObjectId.isValid(value)) {
@@ -8,11 +9,16 @@ const validateId = Joi.string().required().custom((value, helpers) => {
   return helpers.message('Неверный id');
 });
 
+const validateLink = Joi.string().custom((value, helpers) => {
+  if (validator.isURL(value, { require_protocol: true })) {
+    return value;
+  }
+  return helpers.message('Неверный формат ссылки');
+});
+
 const validateEmail = Joi.string().required().email();
 const validatePassword = Joi.string().required();
 const validateInfo = Joi.string().min(2).max(30);
-const validateLink = Joi.string().pattern(/^https?:\/\/(www.)?[-\w]+\.[-\w/]*/mi);
-// проверено с помощью сервиса https://regex101.com/
 
 module.exports.validateCreateUser = celebrate({
   body: Joi.object().keys({
