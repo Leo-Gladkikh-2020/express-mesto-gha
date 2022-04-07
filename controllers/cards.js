@@ -1,7 +1,7 @@
 const Card = require('../models/card');
-const ErrorBadRequest = require('../error/error -bad-request');
-const ErrorNotFound = require('../error/error-not-found');
-const ErrorForbidden = require('../error/error-forbidden');
+const ErrorBadRequest = require('../error/error -bad-request'); // 400
+const ErrorNotFound = require('../error/error-not-found'); // 404
+const ErrorForbidden = require('../error/error-forbidden'); // 403
 
 module.exports.getCards = (req, res, next) => {
   Card.find({})
@@ -16,7 +16,7 @@ module.exports.createCard = (req, res, next) => {
     .then((card) => res.send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new ErrorNotFound('Переданы некорректные данные'));
+        next(new ErrorBadRequest('Переданы некорректные данные'));
       } else {
         next(err);
       }
